@@ -35,6 +35,7 @@ DEFAULT_WEIGHTED_GRAPH_R={
     "Z": {"B": random.randint(-7,7)}
     }
 
+
 def createWordedNumbering(n: int) -> list[str]:
     arr: list[str] = [""]*n
     for i in range(1,n+1):
@@ -44,7 +45,6 @@ def createWordedNumbering(n: int) -> list[str]:
             case 3: arr[i-1]= "third"
             case _: arr[i-1]= f"{i}th"
     return arr
-
 
 def createGraph(n=-1):
     if n==-1: 
@@ -65,9 +65,48 @@ def createGraph(n=-1):
     
     return AdjList
   
+import matplotlib.pyplot as plt
+import networkx as nx
+
+def visualize_graph(graph: dict ) -> None:  #GPT generated
+  """
+  This function visualizes a graph represented as a dictionary.
+
+  Args:
+      graph: A dictionary where keys are node names and values are lists of neighboring nodes.
+  """
+  # Create a NetworkX graph object
+  G = nx.DiGraph()  # Use DiGraph for directed graphs (if needed)
+
+  # Add nodes to the graph
+  for node, neighbors in graph.items():
+    G.add_node(node)
+
+  # Add edges to the graph
+  for node, neighbors in graph.items():
+    for neighbor in neighbors:
+      G.add_edge(node, neighbor)
+
+  # Set node positions (optional)
+  pos = nx.spring_layout(G)  # Use a layout algorithm (like spring_layout)
+
+  # Draw the graph
+  nx.draw_networkx_nodes(G, pos, node_color='red', node_size=500)
+  nx.draw_networkx_edges(G, pos, alpha=0.7)
+
+  # Add node labels
+  nx.draw_networkx_labels(G, pos, font_size=16)
+
+  # Show the graph
+  plt.axis('off')  # Hide unnecessary axis labels
+  plt.show()
+
+#-------------------------------------------------------------------------------
+
 
 def BFS(graph: dict, start: str, anotate: bool = False, info: bool = True) -> tuple[dict,dict]: #Returns two dictionaries, one for distances and one for predecessors.
-    
+
+
     #Step 1- Initialize the variables
     queue =deque() # Empty queue 
     distance= {i: INF for i in graph} #Initializing a dicitionary of the nodes in the graph with their values set to infinity to resmble undiscovered/unreachable nodes.
@@ -139,6 +178,8 @@ def DFS(graph: dict, anotate: bool = False) -> tuple[dict , dict , bool]: #Retur
     
     return time,lead,cycle
 
+#-------------------------------------------------------------------------------
+
 def removeNodes(graph: dict, A: list) -> dict:
     
     graph_new=copy.deepcopy(graph)
@@ -193,43 +234,6 @@ def SCC(graph: dict)-> dict:
 
 #-------------------------------------------------------------------------------
 
-import matplotlib.pyplot as plt
-import networkx as nx
-
-def visualize_graph(graph: dict ) -> None:  #GPT generated
-  """
-  This function visualizes a graph represented as a dictionary.
-
-  Args:
-      graph: A dictionary where keys are node names and values are lists of neighboring nodes.
-  """
-  # Create a NetworkX graph object
-  G = nx.DiGraph()  # Use DiGraph for directed graphs (if needed)
-
-  # Add nodes to the graph
-  for node, neighbors in graph.items():
-    G.add_node(node)
-
-  # Add edges to the graph
-  for node, neighbors in graph.items():
-    for neighbor in neighbors:
-      G.add_edge(node, neighbor)
-
-  # Set node positions (optional)
-  pos = nx.spring_layout(G)  # Use a layout algorithm (like spring_layout)
-
-  # Draw the graph
-  nx.draw_networkx_nodes(G, pos, node_color='red', node_size=500)
-  nx.draw_networkx_edges(G, pos, alpha=0.7)
-
-  # Add node labels
-  nx.draw_networkx_labels(G, pos, font_size=16)
-
-  # Show the graph
-  plt.axis('off')  # Hide unnecessary axis labels
-  plt.show()
-
-
 def createWeightedGraph(n: int = -1) -> dict:
     if n==-1:
         print ("Enter the number of nodes you want in the graph:")
@@ -249,7 +253,6 @@ def createWeightedGraph(n: int = -1) -> dict:
             w= int(input())
             graph[Nname].append((neighbor, w)) 
     return graph 
-
 
 def Dijkstra(graph: dict, start: str, directed: bool =True, info: bool =False) -> tuple[dict,dict]:
     #-----------------------Intilization steps-----------------------
@@ -345,6 +348,8 @@ def BelmanFord(graph, start):
     pass
 
 
+#-------------------------------------------------------------------------------
+
 def GCD(x, y):
     temp = 0
     while(y != 0):
@@ -353,6 +358,7 @@ def GCD(x, y):
         x = temp
 
     return x
+
 
 
 class Node:
@@ -381,6 +387,260 @@ class LinkedList:
             current = current.next
         print ("None")
 
+class AVLTree:
+    """
+    AVL Tree implementation in Python
+    
+    Works with integers only.
+    """
+
+
+    def __init__(self,*, data:int) -> None:
+        self.data: int =data
+        self.balance_factor: int=0
+        self.height: int=1
+        self.left: 'AVLTree' = None
+        self.right: 'AVLTree' = None
+        self.parent: 'AVLTree' = None
+
+
+    def addNode(self, *, value: int) -> None:
+
+        print("Visiting node: ", self.data)
+
+        if value < self.data: #RUN LEFT
+            if self.left is None:
+                self.left = AVLTree(data=value)
+                self.left.parent = self
+            else:
+                self.left.addNode(value=value)
+        else: #RUN RIGHT
+            if self.right is None:
+                self.right = AVLTree(data=value)
+                self.right.parent = self
+            else:
+                self.right.addNode(value=value)
+        
+        self.calculateBalance()
+        self.fixTree()
+
+    def removeNode(self,*, value: int) -> None:
+        workNode: 'AVLTree' = self.find(value)
+        foreparent: 'AVLTree' = workNode.parent
+        traverse: 'AVLTree'= None
+
+        if workNode is None:
+            return
+        
+
+        if foreparent is None: #Case - Root
+            if workNode.balance_factor > 0:
+                traverse = workNode.right
+                while traverse.left is not None: # Getting to the minimum of the right branch of tree
+                    traverse = traverse.left
+                traverse.left = workNode.left
+                workNode.left.parent = traverse
+                workNode.right.parent = None
+                self.fixTree(workNode.left)
+                del workNode
+
+            elif workNode.balance_factor < 0:
+                traverse = workNode.left
+                while traverse.right is not None: # Getting to the maximum of the left branch of tree
+                    traverse = traverse.right
+                traverse.right = workNode.right
+                workNode.right.parent = traverse
+                workNode.left.parent = None
+                self.fixTree(workNode.right)
+                del workNode
+                
+
+        elif foreparent.left is workNode: #Case - Left Child
+            traverse = workNode.right
+            if traverse is not None:
+                while traverse.left is not None: # Getting to the minimum of the right branch of tree
+                    traverse = traverse.left
+            else:
+                traverse = workNode.left
+
+            traverse, workNode = workNode, traverse
+            del traverse
+            foreparent.left = workNode
+            if workNode is not None:
+                AVLTree.fixTree(workNode)
+        
+        elif foreparent.right is workNode: #Case - Right Child
+            traverse = workNode.left
+            if traverse is not None:
+                while traverse.right is not None: # Getting to the maximum of the left branch of tree
+                    traverse = traverse.right
+            else: 
+                traverse = workNode.right
+            
+            traverse, workNode = workNode, traverse
+            del traverse
+            foreparent.right = workNode
+            if workNode is not None:
+                AVLTree.fixTree(workNode)
+
+        foreparent.calculateBalance() 
+
+    def find(self, key: int) -> 'AVLTree':
+        if key == self.data:
+            return self
+        
+        if key < self.data:
+            if self.left is None:
+                return None
+            else:
+                return self.left.find(key)
+        
+        if key > self.data:
+            if self.right is None:
+                return None
+            else:
+                return self.right.find(key)
+        
+        else:
+            return None
+        
+    def fixTree(workNode: 'AVLTree') -> None:
+        traverse= workNode
+
+        #If a balance factor is 2 or -2, we need to fix the tree along the path from the node to the root.
+
+        while traverse.parent is not None:
+
+            #Recaulculating balance factors and heights:
+            traverse.calculateBalance()
+            #print("I break here!")
+            #Fixing tree using rotations corresponding to balance factor:
+            match traverse.balance_factor:
+                case -2:
+                    if traverse.right.balance_factor == 1:
+                        AVLTree.rotateRight(traverse.right) #Case -2, 1: Break on purpose to create -2,-1 then fix by rotation left.
+                    AVLTree.rotateLeft(traverse) #Case -2, -1: Rotate left
+                    
+                case 2:
+                    if traverse.left.balance_factor == -1:
+                        AVLTree.rotateLeft(traverse.left) #Case 2, -1: Break on purpose to create 2,1 then fix by rotation right.
+                    AVLTree.rotateRight(traverse) #Case 2, 1: Rotate right
+            
+            #print(f"traverse before = {traverse}")        
+            traverse=traverse.parent
+            #print(f"traverse after = {traverse}")        
+            
+    def rotateLeft(workNode: 'AVLTree') -> None:
+        #A
+        #B
+        #B.parent = A.parent
+        #B.parent.right = B
+        #A.right = B.left
+        #B.left.parent = A
+        #B.left = A
+        #A.parent = B
+
+        oldFather_leftSon: 'AVLTree' = workNode #The node we encountered with bad balance factor. It is the oldFather, and after the process it'll be the left son.
+        rightSon_newFather: 'AVLTree' = workNode.right #The pivit node, the node we preform the rotation on. It is the right Son, and after the process it'll be the newFather.
+
+        rightSon_newFather.parent = oldFather_leftSon.parent #Breaking the link with old father, making the parent field be the parent of the old father
+        rightSon_newFather.parent.right = rightSon_newFather #Making sure the link is connected from forefather side.
+
+        
+        oldFather_leftSon.right = rightSon_newFather.left #Transfering all the smaller(left) kids of the new father to the old fathers bigger(right) kids.
+        if rightSon_newFather.left is not None:
+            rightSon_newFather.left.parent= oldFather_leftSon # SAME AS A LINE ABOVE
+
+
+        rightSon_newFather.left = oldFather_leftSon #Making the old father the left son of the new father.
+        oldFather_leftSon.parent = rightSon_newFather #Updating the new father to be the parent of the old father.
+
+        oldFather_leftSon.calculateBalance() #Recalculating the balance factor of the old father
+        rightSon_newFather.calculateBalance() #Recalculating the balance factor of the new father
+
+    def rotateRight(workNode: 'AVLTree') -> None:
+        
+        #A
+        #B
+        #B.parent = A.parent
+        #B.parent.left = B
+        #A.left = B.right
+        #B.right.parent = A
+        #B.right = A
+        #A.parent = B
+        
+        oldFather_rightSon: 'AVLTree' = workNode #The node we encountered with bad balance factor. It is the oldFather, and after the process it'll be the right son.
+        leftSon_newFather: 'AVLTree' = workNode.left #The pivit node, the node we preform the rotation on. It is the right Son, and after the process it'll be the newFather.
+
+        leftSon_newFather.parent = oldFather_rightSon.parent #Breaking the link with old father, making the parent field be the parent of the old father
+        leftSon_newFather.parent.left = leftSon_newFather #Making sure the link is connected from forefather side.
+        
+        oldFather_rightSon.left = leftSon_newFather.right #Transfering all the bigger(right) kids of the new father to the old fathers smaller(left) kids.
+        if leftSon_newFather.right is not None:
+            leftSon_newFather.right.parent = leftSon_newFather # SAME AS A LINE ABOVE
+
+        leftSon_newFather.right = oldFather_rightSon #Making the old father the left son of the new father.
+        oldFather_rightSon.parent = leftSon_newFather #Updating the new father to be the parent of the old father.
+
+        #Updating...:
+        oldFather_rightSon.calculateBalance()
+        leftSon_newFather.calculateBalance()
+
+    def calculateBalance(self):
+    
+        match self.left, self.right:
+            case None, None:
+                self.balance_factor= 0
+                self.height = 1  
+            case None, _:
+                self.balance_factor= -self.right.height
+                self.height = 1 + self.right.height
+            case _, None:
+                self.balance_factor= self.left.height
+                self.height = 1 + self.left.height
+            case _, _:
+                self.balance_factor= self.left.height - self.right.height
+                self.height = 1 + max(self.left.height, self.right.height)
+    
+    
+    def inOrder(self) -> None:
+        
+        if self.left is not None:
+            self.left.inOrder()
+        
+        print(self.data, end = ", ")
+
+        if self.right is not None:
+            self.right.inOrder()
+    
+    def preOrder(self) -> None:
+
+        print(self.data, end = ", ")
+        
+        if self.left is not None:
+            self.left.preOrder()
+        
+
+        if self.right is not None:
+            self.right.preOrder()
+
+    
+    def postOrder(self) -> None:
+
+        if self.left is not None:
+            self.left.postOrder()
+        
+
+        if self.right is not None:
+            self.right.postOrder()
+
+        print(self.data, end = ", ")
+
+        
+    
+    def __repr__(self) -> str:
+        return f"(data={self.data},balance_factor={self.balance_factor},height={self.height})"
+
 
 def visualizeGraph_alternate() -> None:
     graph_dict: dict[str:list[str]] = {
@@ -406,7 +666,7 @@ def visualizeGraph_alternate() -> None:
     
     plt.show()
 
-#region Assignment 1.1
+#region Assignment 1.1 <---------------------->
 
 def Walk_Through_Node(graph, x, z, y): #Undirected Graph
     d, lead= BFS(graph, z)
@@ -448,7 +708,7 @@ def Path_Through_Group(graph,x,A,y): #Undirected Graph
     return False if d[y]<= dis else True
 
 
-def Shortest_Walk_Through_Group_Val(graph,x,A,y): #Undirected Graph
+def Shortest_Walk_Through_Group_Val(graph: dict, x: str, A: list[str], y : str) -> int: #Undirected Graph
     dx, leadx= BFS(graph, x)
     if (dx[y]==INF): return INF
 
@@ -461,7 +721,7 @@ def Shortest_Walk_Through_Group_Val(graph,x,A,y): #Undirected Graph
     return min
 
 
-def Merge_Graphs_shared_nodes(graph1, graph2): #Question: What will happen when the two graphs don't have the same nodes?
+def Merge_Graphs_shared_nodes(graph1: dict, graph2: dict) -> dict: #Question: What will happen when the two graphs don't have the same nodes?
     graph_new= {}
     for key in graph1:
         graph_new[key]= graph1[key] #Step 1- Copy all of the nodes and the edges from the first graph.
@@ -478,7 +738,7 @@ def Merge_Graphs_shared_nodes(graph1, graph2): #Question: What will happen when 
 
 #-----------------------TOPOLOGY--------------------------
 
-def Detect_Same_topology(graph1, graph2):
+def Detect_Same_topology(graph1: dict, graph2: dict) -> bool:
     graph_new= Merge_Graphs_shared_nodes(graph1, graph2)
     d,lead,cycle= DFS(graph_new)
     return False if cycle else True
@@ -632,7 +892,7 @@ def test_Assign2_2(interactive: bool = False, graph: dict = None) -> bool:
 
     return suggest("Would you like to continue or repeat? (0=continue, 1=repeat):")
 
-#endregion
+#endregion <---------------------->
 
 def test_SCC() -> bool:
 
@@ -716,6 +976,27 @@ def main() -> None:
     # mylist.append(3)
     # mylist.display()
 
+    # a: int = 5
+    # b: int = 12
+    # a,b = b,a
+    # print(a,b)
+
+    myTree = AVLTree(data=5)
+    print("Hello World")
+    myTree.addNode(value=4)
+    myTree.addNode(value=6)
+    myTree.addNode(value=3)
+    myTree.addNode(value=7)
+    myTree.addNode(value=2)
+    myTree.addNode(value=10)
+    myTree.inOrder()
+    print("")
+    myTree.postOrder()
+    print("")
+    myTree.preOrder()
+    X=myTree.find(6)
+    print("")
+    print(X)
 
     #endregion <-->
 
@@ -742,18 +1023,18 @@ def main() -> None:
     #region SCC <--> SCC testing
     #---------------------SCC-----------------------------
 
-    while(res):
-        res= test_SCC()
-    while(res):
-        res= visualize_graph()
+    # while(res):
+    #     res= test_SCC()
+    # while(res):
+    #     res= visualize_graph()
 
     #endregion <-->
 
     #region Dijsktra <-->
     #---------------------Dijkstra-----------------------------
 
-    while(res):
-        res= test_Dikstra()
+    # while(res):
+    #     res= test_Dikstra()
 
     #endregion <-->
 
