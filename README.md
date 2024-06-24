@@ -31,3 +31,4 @@ In this python program we test tools and algorithms we learned to solve problems
 - Create worded numbering
 - Self test of functions
 - Linked List
+- AVL tree
