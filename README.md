@@ -32,3 +32,4 @@ In this python program we test tools and algorithms we learned to solve problems
 - Self test of functions
 - Linked List
 - AVL tree
+- Huffman Code
