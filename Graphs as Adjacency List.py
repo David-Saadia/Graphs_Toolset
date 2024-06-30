@@ -947,6 +947,86 @@ def test_Dikstra(graph: dict = None, anotate: bool = False) -> bool:
     
     return suggest("Would you like to continue or repeat? (0=continue, 1=repeat):")
         
+from collections import defaultdict
+
+def countArray(text:str)-> dict:
+    countArr = defaultdict(int)
+
+    for char in text:
+        countArr[char] += 1
+    
+    return countArr
+
+
+from bitarray import bitarray
+
+def hoffman_Encode(encodeMe: str) -> tuple[bitarray,dict]:
+    countArr= countArray(encodeMe)
+    heap = [[count, [char, '']] for char, count in countArr.items()] #Creating a list out of the div array dictionary.
+    heapq.heapify(heap)
+    #Pulling the letters with the least amount of instances from the heap
+
+    while len(heap) > 1:
+        left = heapq.heappop(heap) #Node with least amount of instances
+        #print(f"Left = {left}")
+        right = heapq.heappop(heap) #Second node with least amount of instances
+        #print(f"Right = {right}")
+        #Adding the values 0 or 1 to the selected branches, where 0 is left and 1 is right. We then add them together and call them by their new joint node name and sum.
+        for pair in right[1:]:
+            pair[1] = '1' + pair[1] #For example: ['l', '010'] becomes ['l', '1010']
+        #print(f"right add one = {right}")
+        for pair in left[1:]:
+            pair[1] = '0' + pair[1]
+        #print(f"left add zero = {left}")
+        heapq.heappush(heap, [left[0] + right[0]] + left[1:] + right[1:]) #For example, [1,['l','1010']] and [2,['d','0010']] becomes [3, ['l', '1010'], ['d', '0010']]
+    
+    print(f"To the left: {left}\nAnd to the right: {right}")
+    huffman_list = right[1:] + left[1:]
+    #print(f"huffman_list = {huffman_list}")
+    huffman_dict = {a[0]:bitarray(str(a[1])) for a in huffman_list}
+    #print(f"huffman_dict = {huffman_dict}")
+
+    encoded_text = bitarray()
+    encoded_text.encode(huffman_dict, encodeMe)
+    #print(encoded_text)
+
+    return encoded_text, huffman_dict
+
+def hoffmanIntoFile(encoding:bitarray, filename:str=None) -> int:
+    if(filename is None):
+        filename= input("Please enter a filename: ")
+        filename = filename.strip() + ".bin"
+       
+    print(encoding)
+    print("length of encoding: ", len(encoding))
+    padding = 8 - (len(encoding) % 8)
+    
+    with open(filename, "wb") as f:
+        encoding.tofile(f)
+    
+    return padding
+
+
+def hoffmanFromFile(decoderDic:dict,filename:str=None, padding:int=0) -> str:
+
+    if filename is None:
+        filename= input("Please enter a filename (including .bin): ")
+    
+    if padding==0:
+        padding = int(input("Please enter the padding: "))
+    
+    decodedRes = bitarray()
+
+    with open (filename, "rb") as f:
+        decodedRes.fromfile(f)
+    
+    decodedRes = decodedRes[:-padding]
+    decodedRes = decodedRes.decode(decoderDic)
+    decodedRes = "".join(decodedRes)
+
+    return decodedRes
+
+
 
 
 def main() -> None:
@@ -981,22 +1061,33 @@ def main() -> None:
     # a,b = b,a
     # print(a,b)
 
-    myTree = AVLTree(data=5)
-    print("Hello World")
-    myTree.addNode(value=4)
-    myTree.addNode(value=6)
-    myTree.addNode(value=3)
-    myTree.addNode(value=7)
-    myTree.addNode(value=2)
-    myTree.addNode(value=10)
-    myTree.inOrder()
-    print("")
-    myTree.postOrder()
-    print("")
-    myTree.preOrder()
-    X=myTree.find(6)
-    print("")
-    print(X)
+    # myTree = AVLTree(data=5)
+    # print("Hello World")
+    # myTree.addNode(value=4)
+    # myTree.addNode(value=6)
+    # myTree.addNode(value=3)
+    # myTree.addNode(value=7)
+    # myTree.addNode(value=2)
+    # myTree.addNode(value=10)
+    # myTree.inOrder()
+    # print("")
+    # myTree.postOrder()
+    # print("")
+    # myTree.preOrder()
+    # X=myTree.find(6)
+    # print("")
+    # print(X)
+
+    # password = "HelloGithub9090"
+    # encoded, keys = hoffman_Encode(password)
+    # print(encoded)
+    # print(len(encoded))
+    # print(keys)
+
+    # decoded_text = encoded.decode(keys)
+    # decoded_text = "".join(decoded_text)
+    # print(decoded_text)
+    
 
     #endregion <-->
 
